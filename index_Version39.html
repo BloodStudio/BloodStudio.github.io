@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>BloodStudio</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; background: #181a20; color: #eaeaea; min-height: 100vh; }
+    header { background: #242633; padding: 30px 0 10px 0; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2); position: relative; }
+    header h1 { margin: 0; font-size: 2.5rem; letter-spacing: 1px; color: #7fd672; text-shadow: 0 2px 8px #111; }
+    #menu-btn { position: absolute; top: 22px; left: 18px; width: 38px; height: 38px; background: #232734; border: none; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; box-shadow: 0 1px 6px #111; }
+    #menu-btn:focus { outline: 2px solid #7fd672; }
+    .burger { width: 22px; height: 18px; display: flex; flex-direction: column; justify-content: space-between; }
+    .burger span { display: block; height: 3.5px; background: #7fd672; border-radius: 2px; transition: 0.3s; }
+    #side-menu { position: fixed; top: 0; left: 0; width: 250px; height: 100vh; background: #22232d; color: #eaeaea; box-shadow: 2px 0 14px #111a; transform: translateX(-270px); transition: transform 0.25s cubic-bezier(.47,1.64,.41,.8); z-index: 20; padding-top: 72px; }
+    #side-menu.open { transform: translateX(0); }
+    #side-menu h2 { color: #7fd672; font-size: 1.32rem; margin-left: 18px; margin-top: 0; margin-bottom: 10px; }
+
+    .menu-cat { color:#7fd672; font-size:1.12rem; margin:20px 8px 6px 18px; font-weight:bold; letter-spacing:.6px;}
+    #side-menu ul { list-style: none; padding: 0 0 0 18px; margin: 0; }
+    #side-menu li { margin-bottom: 16px; font-size: 1.13rem; cursor: pointer; padding: 7px 12px; border-radius: 6px; transition: background .18s; }
+    #side-menu li:hover, #side-menu li.active { background: #7fd67222; color: #7fd672; }
+    #menu-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000a; z-index: 15; }
+
+    .page { max-width: 520px; margin: 0 auto; padding: 30px 0 0 0; display: none; }
+    .page.active { display: block; }
+
+    .info-box {
+      background: #232734;
+      border-radius: 12px;
+      padding: 32px 32px;
+      box-shadow: 0 2px 8px #111;
+      margin-top: 40px;
+      color: #eaeaea;
+      border: 1px solid #7fd67244;
+      text-align: center;
+      max-width: 95vw;
+    }
+
+    .info-box h2 { color: #7fd672; margin-top: 0; font-size: 2rem; }
+    .info-box p { font-size: 1.18rem; margin-bottom: 18px; }
+    .github-link {
+      display: inline-block;
+      margin-top: 18px;
+      padding: 8px 18px;
+      background: #7fd672;
+      color: #181a20;
+      border-radius: 7px;
+      font-weight: bold;
+      text-decoration: none;
+      box-shadow: 0 2px 10px #1116;
+      transition: background 0.15s, color 0.15s;
+    }
+    .github-link:hover { background: #5cab4f; color: #fff; }
+
+    /* Auswahl-Styles */
+    #religion-list, #games-list, #history-list { list-style: none; padding: 0; margin: 24px auto 0 auto; max-width: 340px; }
+    .religion-btn, .game-btn, .history-btn {
+      display: block;
+      background: #232734;
+      color: #7fd672;
+      font-size: 1.19rem;
+      margin: 11px 0;
+      border: none;
+      border-radius: 7px;
+      padding: 14px 10px;
+      cursor: pointer;
+      box-shadow: 0 1px 8px #1118;
+      font-weight: bold;
+      transition: background 0.17s, color 0.17s;
+      width: 100%;
+      text-align: left;
+    }
+    .religion-btn:hover, .religion-btn.active,
+    .game-btn:hover, .game-btn.active,
+    .history-btn:hover, .history-btn.active { background: #7fd672; color: #181a20; }
+    .religion-info, .game-info, .history-info {
+      margin: 22px auto 0 auto;
+      background: #242633;
+      border-radius: 10px;
+      box-shadow: 0 1px 6px #111;
+      padding: 18px 14px;
+      max-width: 340px;
+      color: #eaeaea;
+      animation: fadeIn 0.3s;
+      text-align: left;
+      font-size: 1.09rem;
+      border-left: 4px solid #7fd672;
+    }
+    .religion-info h3, .game-info h3, .history-info h3 { color: #7fd672; margin-top: 0; }
+    #game-search, #history-search { width: 98%; max-width: 340px; padding: 10px; border-radius: 7px; border: none; background: #242633; color: #eaeaea; font-size: 1.13rem; margin: 10px auto 28px auto; display: block; box-shadow: 0 1px 4px #111; outline: none; }
+    #game-search:focus, #history-search:focus { box-shadow: 0 2px 8px #7fd672; }
+    #ad-box {
+      background: #232734;
+      border-radius: 12px;
+      padding: 24px 16px;
+      box-shadow: 0 2px 8px #111;
+      margin: 45px auto 0 auto;
+      color: #eaeaea;
+      border: 2px solid #7fd672;
+      text-align: center;
+      max-width: 420px;
+    }
+    #ad-box h2 { color: #7fd672; margin-top: 0; font-size: 1.35rem; }
+    #ad-text { min-height: 44px; font-size: 1.13rem; margin-top: 12px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 650px) { .page { max-width: 96vw; padding: 20px 0 0 0; } .info-box, #ad-box { padding: 14px 10px; max-width: 98vw; } header h1 { font-size: 1.7rem; } #side-menu { width: 80vw; min-width: 180px; } }
+    @media (max-width: 420px) { header { padding: 18px 0 4px 0; } header h1 { font-size: 1.15rem; padding-right: 20px; } #side-menu h2 { font-size: 1rem; margin-left: 10px; } .menu-cat { font-size: 1.01rem; margin-left:7px;} #side-menu ul { padding-left: 10px; } #side-menu li { font-size: .98rem; padding: 6px 6px; margin-bottom: 10px;} .info-box, #ad-box { margin-top: 20px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <button id="menu-btn" aria-label="Menü öffnen">
+      <span class="burger"><span></span><span></span><span></span></span>
+    </button>
+    <h1>BloodStudio</h1>
+  </header>
+  <div id="menu-overlay"></div>
+  <nav id="side-menu" aria-label="Menü">
+    <h2>Menü</h2>
+
+    <div class="menu-cat">Projekte</div>
+    <ul>
+      <li id="nav-main" class="active">Hauptmenü</li>
+      <li id="nav-page4">Weitere Projekte</li>
+      <li id="nav-page5">Projekt 3</li>
+    </ul>
+
+    <div class="menu-cat">Lern Kategorie</div>
+    <ul>
+      <li id="nav-page1">Religionen</li>
+      <li id="nav-page2">Videospiele</li>
+      <li id="nav-page3">Geschichte</li>
+      <li id="nav-page6">Seite 6</li>
+      <li id="nav-page7">Seite 7</li>
+      <li id="nav-page8">Seite 8</li>
+      <li id="nav-page9">Seite 9</li>
+      <li id="nav-page10">Seite 10</li>
+      <li id="nav-page11">Seite 11</li>
+      <li id="nav-page12">Seite 12</li>
+    </ul>
+  </nav>
+  <!-- Projekte-Kategorie -->
+  <div id="main-page" class="page active">
+    <div class="info-box">
+      <h2>BloodStudio</h2>
+      <p>BloodStudio programmiert nur Websites und präsentiert sie hier.<br>
+      BloodStudio ist kein offizielles Studio, sondern ein Projektnamen für diese Sammlung.</p>
+      <a class="github-link" href="https://github.com/BloodStudio" target="_blank">BloodStudio auf GitHub</a>
+    </div>
+    <div class="info-box">
+      <h2>Worum geht es?</h2>
+      <p>Diese Seite ist schon das Projekt!<br>
+      Diese Seite ist voller Infos.</p>
+    </div>
+    <!-- Werbung Kasten -->
+    <div id="ad-box">
+      <h2>Werbung</h2>
+      <div>Schaut auch gerne mal bei Pithead Studio vorbei!</div>
+    </div>
+  </div>
+  <div id="page4" class="page">
+    <div class="info-box">
+      <h2>Weitere Projekte</h2>
+      <p>Hier kannst du eigene Projekte vorstellen oder beliebig einen Kasten beschriften.</p>
+    </div>
+  </div>
+  <div id="page5" class="page">
+    <div class="info-box">
+      <h2>Projekt 3</h2>
+      <p>Hier kannst du den Projektinhalt selbst bearbeiten.</p>
+    </div>
+  </div>
+  <!-- Lern-Kategorie -->
+  <div id="page1" class="page">
+    <div class="info-box">
+      <h2>Die sechs größten Weltreligionen</h2>
+      <ul id="religion-list">
+        <li><button class="religion-btn" data-rel="christentum">Christentum</button></li>
+        <li><button class="religion-btn" data-rel="islam">Islam</button></li>
+        <li><button class="religion-btn" data-rel="hinduismus">Hinduismus</button></li>
+        <li><button class="religion-btn" data-rel="buddhismus">Buddhismus</button></li>
+        <li><button class="religion-btn" data-rel="judentum">Judentum</button></li>
+        <li><button class="religion-btn" data-rel="bahai">Bahai</button></li>
+      </ul>
+      <div id="religion-info"></div>
+    </div>
+  </div>
+  <div id="page2" class="page">
+    <div class="info-box">
+      <h2>Videospiele</h2>
+      <input type="text" id="game-search" placeholder="Spiel suchen...">
+      <ul id="games-list"></ul>
+      <div id="game-info"></div>
+    </div>
+  </div>
+  <div id="page3" class="page">
+    <div class="info-box">
+      <h2>Geschichte</h2>
+      <input type="text" id="history-search" placeholder="Thema suchen...">
+      <ul id="history-list"></ul>
+      <div id="history-info"></div>
+    </div>
+  </div>
+  <div id="page6" class="page">
+    <div class="info-box"><h2>Seite 6</h2><p>Hier kannst du beliebigen Inhalt einfügen.</p></div>
+  </div>
+  <div id="page7" class="page">
+    <div class="info-box"><h2>Seite 7</h2><p>Hier kannst du beliebigen Inhalt einfügen.</p></div>
+  </div>
+  <div id="page8" class="page">
+    <div class="info-box"><h2>Seite 8</h2><p>Hier kannst du beliebigen Inhalt einfügen.</p></div>
+  </div>
+  <div id="page9" class="page">
+    <div class="info-box"><h2>Seite 9</h2><p>Hier kannst du beliebigen Inhalt einfügen.</p></div>
+  </div>
+  <div id="page10" class="page">
+    <div class="info-box"><h2>Seite 10</h2><p>Hier kannst du beliebigen Inhalt einfügen.</p></div>
+  </div>
+  <div id="page11" class="page">
+    <div class="info-box"><h2>Seite 11</h2><p>Hier kannst du beliebigen Inhalt einfügen.</p></div>
+  </div>
+  <div id="page12" class="page">
+    <div class="info-box"><h2>Seite 12</h2><p>Hier kannst du beliebigen Inhalt einfügen.</p></div>
+  </div>
+  <script>
+    // Menü Navigation + Kategorisierung
+    const pages = [
+      {nav: 'nav-main', page: 'main-page'},
+      {nav: 'nav-page4', page: 'page4'},
+      {nav: 'nav-page5', page: 'page5'},
+      {nav: 'nav-page1', page: 'page1'},
+      {nav: 'nav-page2', page: 'page2'},
+      {nav: 'nav-page3', page: 'page3'},
+      {nav: 'nav-page6', page: 'page6'},
+      {nav: 'nav-page7', page: 'page7'},
+      {nav: 'nav-page8', page: 'page8'},
+      {nav: 'nav-page9', page: 'page9'},
+      {nav: 'nav-page10', page: 'page10'},
+      {nav: 'nav-page11', page: 'page11'},
+      {nav: 'nav-page12', page: 'page12'}
+    ];
+    function showPage(idx) {
+      pages.forEach((_, i) => {
+        document.getElementById(pages[i].nav).classList.toggle('active', i === idx);
+        document.getElementById(pages[i].page).classList.toggle('active', i === idx);
+      });
+      closeMenu();
+    }
+    pages.forEach((p, idx) => {
+      document.getElementById(p.nav).onclick = () => showPage(idx);
+    });
+    const menuBtn = document.getElementById('menu-btn');
+    const sideMenu = document.getElementById('side-menu');
+    const menuOverlay = document.getElementById('menu-overlay');
+    menuBtn.onclick = () => {
+      sideMenu.classList.add('open');
+      menuOverlay.classList.add('open');
+    };
+    menuOverlay.onclick = closeMenu;
+    function closeMenu() {
+      sideMenu.classList.remove('open');
+      menuOverlay.classList.remove('open');
+    }
+    document.addEventListener('keydown', function(e){
+      if(e.key === "Escape") closeMenu();
+    });
+
+    // Religionen-Daten
+    const religions = {
+      christentum: { name: "Christentum", seit: "ca. 2000 Jahre", anhaenger: "ca. 2,3 Milliarden", glaube: "Glaube an einen Gott, Jesus Christus als Sohn Gottes und Erlöser." },
+      islam: { name: "Islam", seit: "ca. 1400 Jahre", anhaenger: "ca. 1,9 Milliarden", glaube: "Glaube an einen Gott (Allah), Muhammad als letzten Propheten." },
+      hinduismus: { name: "Hinduismus", seit: "über 3500 Jahre", anhaenger: "ca. 1,2 Milliarden", glaube: "Vielfältige Götter, Karma, Wiedergeburt, Dharma." },
+      buddhismus: { name: "Buddhismus", seit: "ca. 2500 Jahre", anhaenger: "ca. 520 Millionen", glaube: "Lehre des Buddha, Erleuchtung, Nirvana, Achtfacher Pfad." },
+      judentum: { name: "Judentum", seit: "über 3000 Jahre", anhaenger: "ca. 15 Millionen", glaube: "Glaube an einen Gott, Erwählung des jüdischen Volkes, Tora." },
+      bahai: { name: "Bahai", seit: "seit 19. Jahrhundert", anhaenger: "ca. 8 Millionen", glaube: "Einheit aller Religionen, Gleichheit der Menschen, Frieden." }
+    };
+    const religionList = document.getElementById('religion-list');
+    const religionInfo = document.getElementById('religion-info');
+    religionList.querySelectorAll('.religion-btn').forEach(btn => {
+      btn.onclick = function() {
+        religionList.querySelectorAll('.religion-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const rel = religions[btn.dataset.rel];
+        religionInfo.innerHTML =
+          `<div class="religion-info"><h3>${rel.name}</h3>
+          <strong>Alter:</strong> ${rel.seit}<br>
+          <strong>Anhänger:</strong> ${rel.anhaenger}<br>
+          <strong>Glaube:</strong> ${rel.glaube}
+          </div>`;
+      };
+    });
+
+    // Videospiele-Daten
+    const games = {
+      minecraft: {name: "Minecraft", beschreibung: "Open-World Sandbox-Spiel, bei dem man Blöcke abbaut und baut.", anzahlSpieler: "1 bis viele (Online)", genre: "Sandbox, Survival", worum: "Überleben, Kreativität, Bauen."},
+      fortnite: {name: "Fortnite", beschreibung: "Battle Royale Shooter mit Bau- und Überlebenselementen.", anzahlSpieler: "1 bis 100 (Online)", genre: "Shooter, Battle Royale", worum: "Kämpfen, Überleben, Gewinnen."},
+      gta5: {name: "GTA V", beschreibung: "Open-World Actionspiel in einer Großstadt.", anzahlSpieler: "Einzelspieler & Online", genre: "Action, Open World", worum: "Verbrechen, Missionen, Freiheit."},
+      amongus: {name: "Among Us", beschreibung: "Mehrspieler-Spiel mit Verräter-Mechanik.", anzahlSpieler: "4-15 (Online)", genre: "Party, Deduktion", worum: "Wer ist der Verräter?"},
+      fifa23: {name: "FIFA 23", beschreibung: "Fußballsimulation mit echten Teams und Spielern.", anzahlSpieler: "1-4 (Offline/Online)", genre: "Sport", worum: "Fußball spielen."},
+      zelda: {name: "The Legend of Zelda", beschreibung: "Abenteuer-Spielreihe mit Held Link.", anzahlSpieler: "Einzelspieler", genre: "Action-Adventure", worum: "Rätsel, Kämpfe, Abenteuer."},
+      csgo: {name: "CS:GO", beschreibung: "Taktischer Shooter, zwei Teams kämpfen in Runden.", anzahlSpieler: "Online, Team-basiert", genre: "Shooter", worum: "Runden, Teamplay, Bomben entschärfen."},
+      lol: {name: "League of Legends", beschreibung: "MOBA mit vielen Champions und taktischem Spiel.", anzahlSpieler: "Online, 5v5", genre: "MOBA", worum: "Gegnerische Basis zerstören."},
+      rocketleague: {name: "Rocket League", beschreibung: "Fahrzeug-Fußball mit Boost und Tricks.", anzahlSpieler: "1-4 (Online)", genre: "Sport, Action", worum: "Tore schießen mit Autos."},
+      callofduty: {name: "Call of Duty", beschreibung: "Actionreicher Shooter mit Kampagnen und Multiplayer.", anzahlSpieler: "1-100", genre: "Shooter", worum: "Missionen, Multiplayer, Battle Royale."},
+      pokemon: {name: "Pokémon", beschreibung: "Sammeln & Kämpfen mit Pokémon.", anzahlSpieler: "Singleplayer & Online", genre: "RPG", worum: "Sammeln, Training, Arena-Kämpfe."},
+      overwatch: {name: "Overwatch", beschreibung: "Heldenshooter mit verschiedenen Fähigkeiten.", anzahlSpieler: "Online, Team-basiert", genre: "Shooter, Teamplay", worum: "Teamziele, Helden auswählen."},
+      skyrim: {name: "Skyrim", beschreibung: "Fantasy-Rollenspiel mit offener Welt.", anzahlSpieler: "Einzelspieler", genre: "RPG, Open World", worum: "Abenteuer, Quests, Drachen besiegen."},
+      valorant: {name: "Valorant", beschreibung: "Shooter mit Agenten, Taktik und Teamplay.", anzahlSpieler: "Online, 5v5", genre: "Shooter, Taktik", worum: "Agenten mit Spezialfähigkeiten."},
+      apex: {name: "Apex Legends", beschreibung: "Battle Royale mit einzigartigen Legenden.", anzahlSpieler: "Online, Teams", genre: "Battle Royale, Shooter", worum: "Überleben und gewinnen."},
+      pubg: {name: "PUBG", beschreibung: "Battle Royale mit vielen Spielern auf einer Insel.", anzahlSpieler: "Online, 1-100", genre: "Battle Royale, Shooter", worum: "Als letzter Spieler überleben."},
+      wow: {name: "World of Warcraft", beschreibung: "Online-Rollenspiel in riesiger Fantasy-Welt.", anzahlSpieler: "Online", genre: "MMORPG", worum: "Quests, Gruppen, Abenteuer."},
+      sims4: {name: "Die Sims 4", beschreibung: "Lebenssimulation, Sims steuern und Häuser bauen.", anzahlSpieler: "Einzelspieler", genre: "Simulation", worum: "Familie und Alltag gestalten."},
+      mario: {name: "Super Mario Bros", beschreibung: "Jump'n'Run Klassiker mit Mario.", anzahlSpieler: "Einzel-/Mehrspieler", genre: "Jump'n'Run", worum: "Level schaffen, Münzen sammeln."},
+      animalcrossing: {name: "Animal Crossing", beschreibung: "Simulations-Spiel, Dorfleben mit Tieren.", anzahlSpieler: "Einzelspieler & Online", genre: "Simulation", worum: "Gestaltung, Sammeln, Zusammenleben."},
+      diablo: {name: "Diablo 4", beschreibung: "Action-RPG mit dunklen Dungeons.", anzahlSpieler: "Einzelspieler & Online", genre: "Action RPG", worum: "Monster jagen, Loot sammeln."},
+      tetris: {name: "Tetris", beschreibung: "Klassisches Puzzlespiel mit Blöcken.", anzahlSpieler: "Einzel-/Mehrspieler", genre: "Puzzle", worum: "Linien bilden."},
+      pacman: {name: "Pac-Man", beschreibung: "Arcade-Klassiker: Punkte fressen & Geistern ausweichen.", anzahlSpieler: "Einzelspieler", genre: "Arcade", worum: "Level bestehen, Highscore erreichen."}
+      // Beliebig erweiterbar!
+    };
+
+    // Geschichte-Daten (editierbar)
+    const historyItems = {
+      roemreich: {name:"Römisches Reich", zeit: "753 v. Chr. - 476 n. Chr.", bedeutung: "Großes antikes Imperium in Europa, Afrika und Asien.", fakten:"Erfand viele Baukunst- und Regierungselemente."},
+      franzrevolution: {name:"Französische Revolution", zeit:"1789-1799", bedeutung:"Umbruch der französischen Gesellschaft und Politik.", fakten:"Beginn der modernen Demokratie in Frankreich."},
+      kalterkrieg: {name:"Kalter Krieg", zeit:"1947-1991", bedeutung:"Konflikt zwischen West & Ost (USA, UDSSR).", fakten:"Atomwaffen, Wettrüsten, Berliner Mauer."},
+      // Weitere Themen beliebig ergänzen:
+      mittelalter: {name:"Mittelalter"},
+      industrie: {name:"Industrielle Revolution"},
+      renaissance: {name:"Renaissance"},
+      // uvm...
+    };
+
+    // Spiele-Auswahl & Suche
+    const gamesList = document.getElementById('games-list');
+    const gameInfo = document.getElementById('game-info');
+    const gameSearch = document.getElementById('game-search');
+    function renderGamesList(filter="") {
+      gamesList.innerHTML = "";
+      Object.keys(games).forEach(key => {
+        const game = games[key];
+        if (game.name && game.name.toLowerCase().includes(filter.toLowerCase())) {
+          const li = document.createElement("li");
+          const btn = document.createElement("button");
+          btn.className = "game-btn";
+          btn.dataset.game = key;
+          btn.textContent = game.name;
+          li.appendChild(btn);
+          gamesList.appendChild(li);
+        }
+      });
+    }
+    renderGamesList();
+    gameSearch.addEventListener('input', e => {
+      renderGamesList(e.target.value);
+      gameInfo.innerHTML = "";
+    });
+    gamesList.onclick = function(e) {
+      if (e.target && e.target.classList.contains('game-btn')) {
+        gamesList.querySelectorAll('.game-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        const g = games[e.target.dataset.game];
+        let info = `<div class="game-info"><h3>${g.name}</h3>`;
+        if (g.beschreibung) info += `<strong>Beschreibung:</strong> ${g.beschreibung}<br>`;
+        if (g.anzahlSpieler) info += `<strong>Spielerzahl:</strong> ${g.anzahlSpieler}<br>`;
+        if (g.genre) info += `<strong>Genre:</strong> ${g.genre}<br>`;
+        if (g.worum) info += `<strong>Worum geht es:</strong> ${g.worum}<br>`;
+        info += `</div>`;
+        gameInfo.innerHTML = info;
+      }
+    };
+
+    // Geschichte-Auswahl & Suche
+    const historyList = document.getElementById('history-list');
+    const historyInfo = document.getElementById('history-info');
+    const historySearch = document.getElementById('history-search');
+    function renderHistoryList(filter="") {
+      historyList.innerHTML = "";
+      Object.keys(historyItems).forEach(key => {
+        const entry = historyItems[key];
+        if (entry.name && entry.name.toLowerCase().includes(filter.toLowerCase())) {
+          const li = document.createElement("li");
+          const btn = document.createElement("button");
+          btn.className = "history-btn";
+          btn.dataset.history = key;
+          btn.textContent = entry.name;
+          li.appendChild(btn);
+          historyList.appendChild(li);
+        }
+      });
+    }
+    renderHistoryList();
+    historySearch.addEventListener('input', e => {
+      renderHistoryList(e.target.value);
+      historyInfo.innerHTML = "";
+    });
+    historyList.onclick = function(e) {
+      if (e.target && e.target.classList.contains('history-btn')) {
+        historyList.querySelectorAll('.history-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        const h = historyItems[e.target.dataset.history];
+        let info = `<div class="history-info"><h3>${h.name}</h3>`;
+        if (h.zeit) info += `<strong>Zeit:</strong> ${h.zeit}<br>`;
+        if (h.bedeutung) info += `<strong>Bedeutung:</strong> ${h.bedeutung}<br>`;
+        if (h.fakten) info += `<strong>Fakten:</strong> ${h.fakten}<br>`;
+        info += `</div>`;
+        historyInfo.innerHTML = info;
+      }
+    };
+    // Religionen
+    religionList.querySelectorAll('.religion-btn').forEach(btn => {
+      btn.onclick = function() {
+        religionList.querySelectorAll('.religion-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const rel = religions[btn.dataset.rel];
+        religionInfo.innerHTML = `<div class="religion-info"><h3>${rel.name}</h3>
+        <strong>Alter:</strong> ${rel.seit}<br>
+        <strong>Anhänger:</strong> ${rel.anhaenger}<br>
+        <strong>Glaube:</strong> ${rel.glaube}
+        </div>`;
+      };
+    });
+  </script>
+</body>
+</html>
